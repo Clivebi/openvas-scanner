@@ -24,8 +24,6 @@
  * @brief Network Functions.
  */
 
-#include "../nasl/nasl_debug.h" /* for nasl_*_filename */
-
 #include <arpa/inet.h> /* for inet_pton */
 #include <errno.h>
 #include <fcntl.h>
@@ -718,7 +716,7 @@ socket_negotiate_ssl (int fd, openvas_encaps_t transport,
       g_free (cafile);
       g_message ("Function socket_negotiate_ssl called from %s: "
                  "SSL/TLS connection failed.",
-                 nasl_get_plugin_filename ());
+                 "");
       release_connection_fd (fd, 0);
       return -1;
     }
@@ -763,7 +761,7 @@ socket_get_cert (int fd, void **cert, int *certlen)
   if (cert_list_len == 0)
     return;
   *certlen = cert_list[0].size;
-  *cert = g_memdup (cert_list[0].data, *certlen);
+  *cert = g_memdup2 (cert_list[0].data, *certlen);
 }
 
 /*
@@ -1224,8 +1222,8 @@ read_stream_connection_unbuffered (int fd, void *buf0, int min_len, int max_len)
       if (fp->transport || fp->fd != 0)
         g_message ("Function %s (calling internal function %s) called from %s: "
                    "Severe bug! Unhandled transport layer %d (fd=%d).",
-                   nasl_get_function_name () ?: "script_main_function",
-                   __func__, nasl_get_plugin_filename (), fp->transport, fd);
+                   "script_main_function",
+                   __func__, "", fp->transport, fd);
       else
         g_message ("read_stream_connection_unbuffered: "
                    "fd=%d is closed",
@@ -1405,8 +1403,8 @@ write_stream_connection4 (int fd, void *buf0, int n, int i_opt)
       if (fp->transport || fp->fd != 0)
         g_message ("Function %s (calling internal function %s) called from %s: "
                    "Severe bug! Unhandled transport layer %d (fd=%d).",
-                   nasl_get_function_name () ?: "script_main_function",
-                   __func__, nasl_get_plugin_filename (), fp->transport, fd);
+                   "script_main_function",
+                   __func__, "", fp->transport, fd);
       else
         g_message ("read_stream_connection_unbuffered: fd=%d is "
                    "closed",

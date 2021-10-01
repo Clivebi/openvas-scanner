@@ -100,7 +100,7 @@ nasl_gcrypt_hash (lex_ctxt *lexic, int algorithm, void *data, size_t datalen,
   gcry_md_write (hd, data, datalen);
 
   retc = alloc_typed_cell (CONST_DATA);
-  retc->x.str_val = g_memdup (gcry_md_read (hd, algorithm), dlen + 1);
+  retc->x.str_val = g_memdup2 (gcry_md_read (hd, algorithm), dlen + 1);
   retc->size = dlen;
 
   gcry_md_close (hd);
@@ -340,7 +340,7 @@ hmac_sha384 (const void *key, int keylen, const void *buf, int buflen)
     }
 
   gcry_md_write (hd, buf, buflen);
-  ret = g_memdup (gcry_md_read (hd, 0), 48);
+  ret = g_memdup2 (gcry_md_read (hd, 0), 48);
   gcry_md_close (hd);
   return ret;
 }
@@ -830,7 +830,7 @@ nasl_lm_owf_gen (lex_ctxt *lexic)
 
   retc = alloc_typed_cell (CONST_DATA);
   retc->size = 16;
-  retc->x.str_val = g_memdup (p16, 16);
+  retc->x.str_val = g_memdup2 (p16, 16);
   return retc;
 }
 

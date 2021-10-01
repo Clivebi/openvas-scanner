@@ -1639,7 +1639,7 @@ encrypt_stream_data (lex_ctxt *lexic, int cipher, const char *caller_func)
   if (cipher == GCRY_CIPHER_ARCFOUR)
     {
       resultlen = datalen;
-      tmp = g_memdup (data, datalen);
+      tmp = g_memdup2 (data, datalen);
       tmplen = datalen;
     }
   else
@@ -1732,7 +1732,7 @@ encrypt_data (lex_ctxt *lexic, int cipher, int mode)
   if (cipher == GCRY_CIPHER_ARCFOUR)
     {
       resultlen = datalen;
-      tmp = g_memdup (data, datalen);
+      tmp = g_memdup2 (data, datalen);
       tmplen = datalen;
     }
   else if (cipher == GCRY_CIPHER_3DES)

@@ -27,7 +27,7 @@
 #define _DEFAULT_SOURCE 1
 #undef _SVID_SOURCE
 
-#include "../misc/bpf_share.h"    /* for bpf_open_live */
+
 #include "../misc/network.h"      /* for getpts */
 #include "../misc/pcap_openvas.h" /* for get_datalink_size */
 #include "../misc/plugutils.h"    /* for scanner_add_port */
@@ -41,6 +41,14 @@
 #include <stdlib.h>      /* for rand() */
 #include <string.h>      /* for memcpy() */
 #include <unistd.h>      /* for close() */
+#include "../misc/bpf_share.h"    /* for bpf_open_live */
+
+#ifdef __APPLE__
+#define s6_addr16   __u6_addr.__u6_addr16
+
+#define s6_addr32   __u6_addr.__u6_addr32
+#endif
+
 
 #undef SHOW_RETRIES
 #undef SHOW_RTT_REMOVAL

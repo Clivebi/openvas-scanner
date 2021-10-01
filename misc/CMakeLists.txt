@@ -124,7 +124,9 @@ set_target_properties (openvas_misc_shared PROPERTIES VERSION "${PROJECT_VERSION
 
 target_link_libraries (openvas_misc_shared LINK_PRIVATE ${GNUTLS_LDFLAGS} ${UUID_LDFLAGS}
                        ${GLIB_LDFLAGS} ${PCAP_LDFLAGS}
-                       ${LINKER_HARDENING_FLAGS})
+                       ${LINKER_HARDENING_FLAGS}
+                       gvm_base
+                       gvm_util)
 
 if (OPENVAS_STATE_DIR)
   add_definitions (-DOPENVAS_STATE_DIR="${OPENVAS_STATE_DIR}")

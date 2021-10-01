@@ -52,6 +52,17 @@
 #define UNFIX(n) ntohs (n)
 #endif
 
+#ifdef __APPLE__
+#define s6_addr16   __u6_addr.__u6_addr16
+
+#define s6_addr32   __u6_addr.__u6_addr32
+
+
+#define 	TCP_MSS_DEFAULT   536U /* IPv4 (RFC1122, RFC2581) */
+ 
+#define 	TCP_MSS_DESIRED   1220U /* IPv6 (tunneled), EDNS0 (RFC3226) */
+#endif
+
 /*--------------[ cksum ]-----------------------------------------*/
 
 /*
@@ -1898,7 +1909,7 @@ get_icmp_element (lex_ctxt *lexic)
             get_var_size_by_name (lexic, "icmp") - (ip->ip_hl * 4) - 8;
           if (retc->size > 0)
             retc->x.str_val =
-              g_memdup (&(p[ip->ip_hl * 4 + 8]), retc->size + 1);
+              g_memdup2 (&(p[ip->ip_hl * 4 + 8]), retc->size + 1);
           else
             {
               retc->x.str_val = NULL;

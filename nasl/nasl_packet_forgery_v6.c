@@ -48,6 +48,17 @@
 #include <netinet/in.h>
 #endif
 
+#ifdef __APPLE__
+#include <netinet/in.h>
+#define s6_addr16   __u6_addr.__u6_addr16
+
+#define s6_addr32   __u6_addr.__u6_addr32
+
+
+#define 	TCP_MSS_DEFAULT   536U /* IPv4 (RFC1122, RFC2581) */
+ 
+#define 	TCP_MSS_DESIRED   1220U /* IPv6 (tunneled), EDNS0 (RFC3226) */
+#endif
 #include "../misc/bpf_share.h"    /* for bpf_open_live */
 #include "../misc/pcap_openvas.h" /* for routethrough */
 #include "../misc/plugutils.h"    /* plug_get_host_ip */
@@ -2025,7 +2036,7 @@ get_icmp_v6_element (lex_ctxt *lexic)
           retc = alloc_typed_cell (CONST_DATA);
           retc->size = get_var_size_by_name (lexic, "icmp") - 40 - 8;
           if (retc->size > 0)
-            retc->x.str_val = g_memdup (&(p[40 + 8]), retc->size + 1);
+            retc->x.str_val = g_memdup2 (&(p[40 + 8]), retc->size + 1);
           else
             {
               retc->x.str_val = NULL;
@@ -2427,7 +2438,7 @@ nasl_send_v6packet (lex_ctxt *lexic)
       /* if(b < 0) perror("sendto "); */
       if (b >= 0 && use_pcap != 0 && bpf >= 0)
         {
-          if (v6_islocalhost (&sip->ip6_dst))
+          if (v6_islocalhost ((struct in6_addr*)(char*)&sip->ip6_dst))
             {
               answer = (u_char *) capture_next_v6_packet (bpf, to, &answer_sz);
               while (

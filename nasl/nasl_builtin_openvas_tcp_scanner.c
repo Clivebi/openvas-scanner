@@ -35,6 +35,12 @@
 #include <sys/types.h>      /* for socket() */
 #include <unistd.h>         /* for close() */
 
+#ifdef __APPLE__
+#define s6_addr16   __u6_addr.__u6_addr16
+
+#define s6_addr32   __u6_addr.__u6_addr32
+#endif
+
 #ifdef LINUX
 #include <netinet/ip.h>
 #include <netinet/tcp.h>

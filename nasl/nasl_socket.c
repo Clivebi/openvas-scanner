@@ -165,10 +165,10 @@ add_udp_data (struct script_infos *script_infos, int soc, char *data, int len)
 {
   GHashTable *udp_data = script_infos->udp_data;
   struct udp_record *data_record = g_malloc0 (sizeof (struct udp_record));
-  int *key = g_memdup (&soc, sizeof (int));
+  int *key = g_memdup2 (&soc, sizeof (int));
 
   data_record->len = len;
-  data_record->data = g_memdup ((gconstpointer) data, (guint) len);
+  data_record->data = g_memdup2 ((gconstpointer) data, (guint) len);
 
   if (udp_data == NULL)
     {
@@ -779,7 +779,7 @@ nasl_recv (lex_ctxt *lexic)
   if (new_len > 0)
     {
       tree_cell *retc = alloc_typed_cell (CONST_DATA);
-      retc->x.str_val = g_memdup (data, new_len);
+      retc->x.str_val = g_memdup2 (data, new_len);
       retc->size = new_len;
       g_free (data);
       return retc;
@@ -848,7 +848,7 @@ nasl_recv_line (lex_ctxt *lexic)
 
   retc = alloc_typed_cell (CONST_DATA);
   retc->size = new_len;
-  retc->x.str_val = g_memdup (data, new_len + 1);
+  retc->x.str_val = g_memdup2 (data, new_len + 1);
 
   g_free (data);
 

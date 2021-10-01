@@ -40,6 +40,16 @@
 #endif
 #endif // __linux__
 
+#ifdef __APPLE__
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <sys/types.h>
+typedef __uint16_t n_short;             /* short as received from the net */
+typedef __uint32_t n_long;              /* long as received from the net */
+
+typedef __uint32_t n_time;              /* ms since 00:00 GMT, byte rev */
+#endif
+
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <sys/param.h>

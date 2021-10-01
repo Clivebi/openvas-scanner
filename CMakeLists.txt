@@ -215,7 +215,11 @@ if (ENABLE_COVERAGE)
 endif (ENABLE_COVERAGE)
 
 set (HARDENING_FLAGS            "-Wformat -Wformat-security -D_FORTIFY_SOURCE=2 -fstack-protector")
-set (LINKER_HARDENING_FLAGS     "-Wl,-z,relro -Wl,-z,now")
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")  
+set (LINKER_HARDENING_FLAGS "-Wl,-z,relro -Wl,-z,now")
+else()
+set (LINKER_HARDENING_FLAGS "-Wl,")
+endif()
 # The "-D_FILE_OFFSET_BITS=64 -DLARGEFILE_SOURCE=1" is necessary for GPGME!
 set (GPGME_C_FLAGS              "-D_FILE_OFFSET_BITS=64 -DLARGEFILE_SOURCE=1")
 

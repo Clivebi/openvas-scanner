@@ -1088,7 +1088,7 @@ get_variable_by_name (lex_ctxt *ctxt, const char *name)
      case VAR2_STRING:
      case VAR2_DATA:
        v->string_form =
-         g_memdup ((char *) v->v.v_str.s_val ?: "", v->v.v_str.s_siz + 1);
+         g_memdup2 ((char *) v->v.v_str.s_val ?: "", v->v.v_str.s_siz + 1);
        break;
      case VAR2_UNDEF:
        break;

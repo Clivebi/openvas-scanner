@@ -18,11 +18,10 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "bpf_share.h"
 #include "network.h"
 #include "pcap_openvas.h"
 #include "support.h"
-
+#include "bpf_share.h"
 #include <arpa/inet.h>
 #include <gvm/base/logging.h>
 #include <gvm/base/networking.h>
@@ -447,10 +446,10 @@ getinterfaces (int *howmany)
     g_message (
       "getinterfaces: SIOCGIFCONF claims you have no network interfaces!");
 
-#ifndef __FreeBSD__
-  len = sizeof (struct ifmap);
-#else
+#if defined __FreeBSD__ || defined __APPLE__
   len = sizeof (struct sockaddr);
+#else
+  len = sizeof (struct ifmap);
 #endif
 
   for (bufp = buf; bufp && *bufp && (bufp < (buf + ifc.ifc_len));

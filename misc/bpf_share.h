@@ -25,7 +25,7 @@
 
 #ifndef OPENVAS_BPF_SHARE_H
 #define OPENVAS_BPF_SHARE_H
-
+#include <time.h>
 #include <sys/types.h>
 
 int

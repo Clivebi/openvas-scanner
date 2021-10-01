@@ -18,7 +18,6 @@
 
 #include "capture_packet.h"
 
-#include "../misc/bpf_share.h"    /* for bpf_datalink */
 #include "../misc/pcap_openvas.h" /* for get_datalink_size */
 
 #include <arpa/inet.h> /* for inet_ntoa */
@@ -30,7 +29,7 @@
 #ifdef __FreeBSD__
 #include <sys/socket.h>
 #endif
-
+#include "../misc/bpf_share.h"    /* for bpf_datalink */
 extern int
 islocalhost (struct in_addr *);
 

@@ -39,6 +39,7 @@
 #include <stdlib.h> /* for getenv.  */
 #include <string.h> /* for memset */
 /* to e.g. favour BSD, but also for IPPROTO_TCP and TH_FIN */
+
 #include "nasl_raw.h"
 #include "nasl_scanner_glue.h"
 #include "nasl_smb.h"
@@ -49,6 +50,8 @@
 #include "nasl_tree.h"
 #include "nasl_var.h"
 #include "nasl_wmi.h"
+
+
 
 /* **************************************************************** */
 
