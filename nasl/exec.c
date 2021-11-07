@@ -1643,15 +1643,7 @@ exec_nasl_script (struct script_infos *script_infos, int mode)
   old_dir = g_get_current_dir ();
 
   newdir = g_path_get_dirname (name);
-
-  if (g_chdir (newdir) != 0)
-    {
-      g_message ("%s: Not able to open nor to locate it in include paths",
-                 name);
-      g_free (old_dir);
-      g_free (newdir);
-      return -1;
-    }
+  g_chdir (newdir);
   g_free (newdir);
 
   bzero (&ctx, sizeof (ctx));

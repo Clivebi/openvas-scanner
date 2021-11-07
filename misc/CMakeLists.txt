@@ -115,18 +115,18 @@ set (MISC_VERSION "${MISC_VERSION_STRING}")
 
 # Build shared
 
-add_library (openvas_misc_shared SHARED ${FILES})
+add_library (openvas_misc  ${FILES})
 
-set_target_properties (openvas_misc_shared PROPERTIES OUTPUT_NAME "openvas_misc")
-set_target_properties (openvas_misc_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-set_target_properties (openvas_misc_shared PROPERTIES SOVERSION "${PROJECT_VERSION_MAJOR}")
-set_target_properties (openvas_misc_shared PROPERTIES VERSION "${PROJECT_VERSION_STRING}")
+set_target_properties (openvas_misc PROPERTIES OUTPUT_NAME "openvas_misc")
+set_target_properties (openvas_misc PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+set_target_properties (openvas_misc PROPERTIES SOVERSION "${PROJECT_VERSION_MAJOR}")
+set_target_properties (openvas_misc PROPERTIES VERSION "${PROJECT_VERSION_STRING}")
 
-target_link_libraries (openvas_misc_shared LINK_PRIVATE ${GNUTLS_LDFLAGS} ${UUID_LDFLAGS}
-                       ${GLIB_LDFLAGS} ${PCAP_LDFLAGS}
-                       ${LINKER_HARDENING_FLAGS}
-                       gvm_base
-                       gvm_util)
+#target_link_libraries (openvas_misc_shared LINK_PRIVATE ${GNUTLS_LDFLAGS} ${UUID_LDFLAGS}
+#                       ${GLIB_LDFLAGS} ${PCAP_LDFLAGS}
+#                       ${LINKER_HARDENING_FLAGS}
+#                       gvm_base
+#                       gvm_util)
 
 if (OPENVAS_STATE_DIR)
   add_definitions (-DOPENVAS_STATE_DIR="${OPENVAS_STATE_DIR}")
@@ -145,10 +145,10 @@ endif (OPENVAS_SYSCONF_DIR)
 
 # install library
 
-install (TARGETS openvas_misc_shared
-         RUNTIME DESTINATION ${BINDIR}
-         LIBRARY DESTINATION ${LIBDIR}
-         ARCHIVE DESTINATION ${LIBDIR})
+#install (TARGETS openvas_misc_shared
+#         RUNTIME DESTINATION ${BINDIR}
+#         LIBRARY DESTINATION ${LIBDIR}
+#         ARCHIVE DESTINATION ${LIBDIR})
 
 install (DIRECTORY DESTINATION ${GVM_LOG_DIR})
 install (DIRECTORY DESTINATION ${OPENVAS_DATA_DIR})

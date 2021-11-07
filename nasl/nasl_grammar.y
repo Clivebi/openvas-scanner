@@ -1,4 +1,4 @@
-%pure-parser
+%define api.pure
 %parse-param {naslctxt * parm}
 %lex-param {naslctxt * parm}
 %expect 1
@@ -540,8 +540,72 @@ naslerror(naslctxt *parm, const char *s)
   (void) parm;
   g_message ("%s", s);
 }
+#ifdef USE_VFS
 
-static GSList * inc_dirs = NULL;
+#include "vfsreader.h"
+
+int
+add_nasl_inc_dir (const char *dir)
+{
+  g_debug ("not implement add_nasl_inc_dir:%s\n", dir);
+  return 0;
+}
+
+void
+nasl_clean_inc (void)
+{
+  if (!includes_hash)
+    return;
+  g_hash_table_destroy (includes_hash);
+  includes_hash = NULL;
+}
+
+/**
+ * @brief Initialize a NASL context for a NASL file.
+ *
+ * @param pc   The NASL context handler.
+ *
+ * @param name The filename of the NASL script.
+ *
+ * @return    0  in case of success. Then, file content is set in pc->buffer.
+ *            -1 if either the filename was not found/accessible or the
+ *            signature verification failed (provided signature checking is
+ *            enabled.
+ *            In any case, various elements of pc are modified
+ *            (initialized);
+ */
+int
+init_nasl_ctx (naslctxt *pc, const char *name)
+{
+  int flen;
+  pc->line_nb = 1;
+  pc->tree = NULL;
+  if (!parse_len)
+    {
+      parse_len = 9092;
+      parse_buffer = g_malloc0 (parse_len);
+    }
+  else
+    parse_buffer[0] = '\0';
+  pc->buffer = nasl_read_script_from_vfs (name, &flen);
+  if (pc->buffer == NULL)
+    {
+      return -1;
+    }
+  nasl_set_filename (name);
+  return 0;
+}
+
+void
+nasl_clean_ctx (naslctxt *c)
+{
+  deref_cell (c->tree);
+  vfs_free_file_content (c->buffer);
+}
+
+#else
+
+static GSList *inc_dirs = NULL;
 
 /**
  * @brief Adds the given string as directory for searching for includes.
@@ -555,7 +619,7 @@ static GSList * inc_dirs = NULL;
  *         -2 if the given directory path was not a directory.
  */
 int
-add_nasl_inc_dir (const char * dir)
+add_nasl_inc_dir (const char *dir)
 {
   if (dir == NULL)
     {
@@ -565,7 +629,7 @@ add_nasl_inc_dir (const char * dir)
   // Allow initialization with empty element
   if (*dir == '\0')
     {
-      inc_dirs = g_slist_append (inc_dirs, g_strdup((gchar *)dir));
+      inc_dirs = g_slist_append (inc_dirs, g_strdup ((gchar *) dir));
       return 0;
     }
 
@@ -574,9 +638,9 @@ add_nasl_inc_dir (const char * dir)
   if (stat (dir, &stat_buf) != 0)
     return -1;
 
-  if (S_ISDIR(stat_buf.st_mode) != 0)
+  if (S_ISDIR (stat_buf.st_mode) != 0)
     {
-      inc_dirs = g_slist_append (inc_dirs, g_strdup((gchar *)dir));
+      inc_dirs = g_slist_append (inc_dirs, g_strdup ((gchar *) dir));
       return 0;
     }
   else
@@ -671,7 +735,8 @@ load_checksums (kb_t kb)
  * @brief Get the checksum of a file.
  *
  * @param[in]  filename     Path to file.
- * @param[in]  algorithm    Libgcrypt hash algorithm to use for generating the checksum.
+ * @param[in]  algorithm    Libgcrypt hash algorithm to use for generating the
+ * checksum.
  *
  * @return checksum string, NULL otherwise.
  */
@@ -695,7 +760,6 @@ file_checksum (const char *filename, int algorithm)
   return result;
 }
 
-
 /**
  * @brief Initialize a NASL context for a NASL file.
  *
@@ -711,15 +775,16 @@ file_checksum (const char *filename, int algorithm)
  *            (initialized);
  */
 int
-init_nasl_ctx(naslctxt* pc, const char* name)
+init_nasl_ctx (naslctxt *pc, const char *name)
 {
   char *full_name = NULL, key_path[2048], *checksum, *filename;
-  GSList * inc_dir = inc_dirs; // iterator for include directories
+  GSList *inc_dir = inc_dirs; // iterator for include directories
   size_t flen = 0;
   time_t timestamp;
 
   // initialize if not yet done (for openvas-server < 2.0.1)
-  if (! inc_dirs) add_nasl_inc_dir("");
+  if (!inc_dirs)
+    add_nasl_inc_dir ("");
 
   pc->line_nb = 1;
   pc->tree = NULL;
@@ -731,29 +796,30 @@ init_nasl_ctx(naslctxt* pc, const char* name)
   else
     parse_buffer[0] = '\0';
 
-
   nasl_set_filename (name);
-  while (inc_dir != NULL) {
-    if (full_name)
+  while (inc_dir != NULL)
+    {
+      if (full_name)
+        g_free (full_name);
+      full_name = g_build_filename (inc_dir->data, name, NULL);
+
+      if ((g_file_get_contents (full_name, &pc->buffer, &flen, NULL)))
+        break;
+
+      inc_dir = g_slist_next (inc_dir);
+    }
+
+  if (!full_name || !pc->buffer)
+    {
+      g_message ("%s: Not able to open nor to locate it in include paths",
+                 name);
       g_free (full_name);
-    full_name = g_build_filename(inc_dir->data, name, NULL);
-
-    if ((g_file_get_contents (full_name, &pc->buffer, &flen, NULL)))
-      break;
-
-    inc_dir = g_slist_next(inc_dir);
-  }
-
-  if (!full_name || !pc->buffer) {
-    g_message ("%s: Not able to open nor to locate it in include paths",
-               name);
-    g_free(full_name);
-    return -1;
-  }
+      return -1;
+    }
 
   if (pc->always_signed)
     {
-      g_free(full_name);
+      g_free (full_name);
       return 0;
     }
   /* Cache the checksum of signature verified files, so that commonly included
@@ -823,20 +889,22 @@ init_nasl_ctx(naslctxt* pc, const char* name)
 }
 
 void
-nasl_clean_ctx(naslctxt* c)
+nasl_clean_ctx (naslctxt *c)
 {
-  deref_cell(c->tree);
+  deref_cell (c->tree);
   g_free (c->buffer);
 }
 
 void
 nasl_clean_inc (void)
 {
- if (!includes_hash)
-   return;
- g_hash_table_destroy (includes_hash);
- includes_hash = NULL;
+  if (!includes_hash)
+    return;
+  g_hash_table_destroy (includes_hash);
+  includes_hash = NULL;
 }
+#endif
+
 
 enum lex_state {
   ST_START = 0,

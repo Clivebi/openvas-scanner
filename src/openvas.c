@@ -259,6 +259,7 @@ load_scan_preferences (struct scan_globals *globals)
       gchar **pref = g_strsplit (res->v_str, "|||", 2);
       if (pref[0])
         {
+          //"name:value:type"
           gchar **pref_name = g_strsplit (pref[0], ":", 3);
           if (pref_name[1] && pref_name[2] && !strncmp (pref_name[2], "file", 4)
               && strcmp (pref[1], ""))

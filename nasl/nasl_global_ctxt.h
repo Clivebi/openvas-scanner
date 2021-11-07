@@ -22,6 +22,7 @@
 /* for FILE */
 #include <gvm/util/kb.h>
 #include <stdio.h>
+#include "nasl_tree.h"
 
 typedef struct
 {
@@ -41,5 +42,15 @@ init_nasl_ctx (naslctxt *, const char *);
 
 void
 nasl_clean_ctx (naslctxt *);
+
+#ifdef USE_VFS
+GSList *
+collect_nvts_from_vfs (GSList *files);
+
+char *
+nasl_read_script_from_vfs (const char *name, int *content_size);
+
+void nasl_close_vfs();
+#endif
 
 #endif

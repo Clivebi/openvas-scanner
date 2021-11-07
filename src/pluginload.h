@@ -26,6 +26,8 @@
 #ifndef _OPENVAS_PLUGINLOAD_H
 #define _OPENVAS_PLUGINLOAD_H
 
+//#define _DEBUG
+
 #include "../misc/network.h"
 #include "../misc/scanneraux.h"
 

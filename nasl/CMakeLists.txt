@@ -57,7 +57,14 @@ pkg_check_modules (LIBGVM_UTIL REQUIRED libgvm_util>=21.4.1)
 pkg_check_modules (OPENVAS_WMICLIENT libopenvas_wmiclient>=1.0.5)
 pkg_check_modules (OPENVAS_WINCMD libopenvas_wincmd>=1.0.5)
 
+# for kb we need libhiredis
+pkg_check_modules (REDIS REQUIRED hiredis>=0.10.1)
 
+# for fast XML we need libxml2
+pkg_check_modules (LIBXML2 REQUIRED libxml-2.0>=2.0)
+pkg_check_modules (ZLIB REQUIRED zlib>=1.2.8)
+
+pkg_check_modules (GIO REQUIRED gio-2.0>=2.42)
 # for 'nasl' binary
 pkg_check_modules (LIBSSH REQUIRED libssh>=0.6.0)
 
@@ -183,14 +190,14 @@ else (NOT BISON_FOUND)
 endif (NOT BISON_FOUND)
 
 set (FILES arc4.c capture_packet.c charcnv.c exec.c genrand.c hmacmd5.c
-     iconv.c lint.c md4.c md5.c nasl.c nasl_builtin_find_service.c
+     iconv.c lint.c md4.c md5.c  nasl_builtin_find_service.c
      nasl_builtin_openvas_tcp_scanner.c nasl_builtin_synscan.c
      nasl_cmd_exec.c nasl_crypto2.c nasl_snmp.c nasl_ssh.c nasl_cert.c
      nasl_crypto.c nasl_debug.c nasl_func.c nasl_grammar.tab.c nasl_host.c
      nasl_http.c nasl_init.c nasl_lex_ctxt.c nasl_misc_funcs.c nasl_scanner_glue.c
      nasl_packet_forgery.c nasl_packet_forgery_v6.c nasl_signature.c nasl_smb.c
      nasl_socket.c nasl_text_utils.c nasl_tree.c nasl_var.c nasl_wmi.c
-     nasl_isotime.c ntlmssp.c smb_crypt.c smb_crypt2.c smb_signing.c time.c)
+     nasl_isotime.c ntlmssp.c smb_crypt.c smb_crypt2.c smb_signing.c time.c nasl_glonal_ctxt.c)
 
 
 if (NOT OPENVAS_WMICLIENT_FOUND)
@@ -228,39 +235,59 @@ include_directories (${GLIB_INCLUDE_DIRS}
 
 
 # Build shared 
-add_library (openvas_nasl_shared SHARED ${FILES})
-set_target_properties (openvas_nasl_shared PROPERTIES OUTPUT_NAME "openvas_nasl")
-set_target_properties (openvas_nasl_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-set_target_properties (openvas_nasl_shared PROPERTIES SOVERSION "${PROJECT_VERSION_MAJOR}")
-set_target_properties (openvas_nasl_shared PROPERTIES VERSION "${PROJECT_VERSION_STRING}")
+#add_library (openvas_nasl_shared SHARED ${FILES})
+#set_target_properties (openvas_nasl_shared PROPERTIES OUTPUT_NAME "openvas_nasl")
+#set_target_properties (openvas_nasl_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+#set_target_properties (openvas_nasl_shared PROPERTIES SOVERSION "${PROJECT_VERSION_MAJOR}")
+#set_target_properties (openvas_nasl_shared PROPERTIES VERSION "${PROJECT_VERSION_STRING}")
 # line below is needed so it also works with no-undefined which is e.g. used by Mandriva
-target_link_libraries (openvas_nasl_shared openvas_misc_shared ${GLIB_LDFLAGS}
-                         ${GCRYPT_LDFLAGS} ${GPGME_LDFLAGS} m
-                         ${LIBGVM_BASE_LDFLAGS}
-                         ${LIBGVM_UTIL_LDFLAGS}
-                         ${OPENVAS_WMICLIENT_LDFLAGS} ${OPENVAS_WINCMD_LDFLAGS}
-                         ${GNUTLS_LDFLAGS} ${PCAP_LDFLAGS} ${LIBSSH_LDFLAGS}
-                         ${KSBA_LDFLAGS} ${SNMP_LDFLAGS}
-                         ${LINKER_HARDENING_FLAGS})
+#target_link_libraries (openvas_nasl_shared openvas_misc ${GLIB_LDFLAGS}
+#                         ${GCRYPT_LDFLAGS} ${GPGME_LDFLAGS} m
+#                         ${LIBGVM_BASE_LDFLAGS}
+#                         ${LIBGVM_UTIL_LDFLAGS}
+#                         ${REDIS_LDFLAGS}
+#                         ${ZLIB_LDFLAGS}
+#                         ${GIO_LDFLAGS}
+#                        ${OPENVAS_WMICLIENT_LDFLAGS} ${OPENVAS_WINCMD_LDFLAGS}
+#                         ${GNUTLS_LDFLAGS} ${PCAP_LDFLAGS} ${LIBSSH_LDFLAGS}
+#                         ${KSBA_LDFLAGS} ${SNMP_LDFLAGS}
+#                         ${LINKER_HARDENING_FLAGS})
 
 # Link the openvas-nasl executable
-add_executable (openvas-nasl nasl.c)
-target_link_libraries (openvas-nasl openvas_nasl_shared openvas_misc_shared ${GNUTLS_LDFLAGS} ${LIBSSH_LDFLAGS})
+add_executable (openvas-nasl nasl.c ${FILES})
+target_link_libraries (openvas-nasl openvas_misc 
+                        ${GLIB_LDFLAGS}
+                        ${GCRYPT_LDFLAGS} ${GPGME_LDFLAGS} m
+                        ${LIBGVM_BASE_LDFLAGS}
+                        ${LIBGVM_UTIL_LDFLAGS}
+                        ${REDIS_LDFLAGS}
+                        ${ZLIB_LDFLAGS}
+                        ${GIO_LDFLAGS}
+                        ${OPENVAS_WMICLIENT_LDFLAGS} 
+                        ${OPENVAS_WINCMD_LDFLAGS}
+                        ${PCAP_LDFLAGS}
+                        ${KSBA_LDFLAGS}
+                        ${SNMP_LDFLAGS}
+                        ${LINKER_HARDENING_FLAGS}
+                        ${GNUTLS_LDFLAGS} 
+                        ${LIBSSH_LDFLAGS})
 
 # Link the openvas-nasl-lint executable
-add_executable (openvas-nasl-lint nasl-lint.c)
-target_link_libraries (openvas-nasl-lint openvas_nasl_shared openvas_misc_shared ${GLIB_LDFLAGS} ${GIO_LDFLAGS})
+add_executable (openvas-nasl-lint nasl-lint.c ${FILES})
+target_link_libraries (openvas-nasl-lint openvas_misc 
+                        ${GLIB_LDFLAGS}
+                        ${GCRYPT_LDFLAGS} ${GPGME_LDFLAGS} m
+                        ${LIBGVM_BASE_LDFLAGS}
+                        ${LIBGVM_UTIL_LDFLAGS}
+                        ${REDIS_LDFLAGS}
+                        ${ZLIB_LDFLAGS}
+                        ${GIO_LDFLAGS}
+                        ${OPENVAS_WMICLIENT_LDFLAGS} 
+                        ${OPENVAS_WINCMD_LDFLAGS}
+                        ${PCAP_LDFLAGS}
+                        ${KSBA_LDFLAGS}
+                        ${SNMP_LDFLAGS}
+                        ${LINKER_HARDENING_FLAGS}
+                        ${GNUTLS_LDFLAGS} 
+                        ${LIBSSH_LDFLAGS})
 
-## Install
-
-install (TARGETS openvas_nasl_shared openvas-nasl openvas-nasl-lint
-         RUNTIME DESTINATION ${BINDIR}
-         LIBRARY DESTINATION ${LIBDIR}
-         ARCHIVE DESTINATION ${LIBDIR})
-
-install (FILES ${CMAKE_SOURCE_DIR}/doc/openvas-nasl.1
-         DESTINATION ${DATADIR}/man/man1 )
-
-install (FILES ${CMAKE_SOURCE_DIR}/doc/openvas-nasl-lint.1
-         DESTINATION ${DATADIR}/man/man1 )
-## End

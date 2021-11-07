@@ -30,6 +30,26 @@ pkg_check_modules (LIBGVM_BASE REQUIRED libgvm_base>=21.4.1)
 pkg_check_modules (LIBGVM_BOREAS REQUIRED libgvm_boreas>=21.4.1)
 pkg_check_modules (LIBGVM_UTIL REQUIRED libgvm_util>=21.4.1)
 pkg_check_modules (GLIB REQUIRED glib-2.0>=2.42)
+pkg_check_modules (LIBNET REQUIRED libnet>=1.2)
+pkg_check_modules (GLIB REQUIRED glib-2.0>=2.42)
+pkg_check_modules (GIO REQUIRED gio-2.0)
+pkg_check_modules (GNUTLS REQUIRED gnutls>=3.2.15)
+
+pkg_check_modules (OPENVAS_WMICLIENT libopenvas_wmiclient>=1.0.5)
+pkg_check_modules (OPENVAS_WINCMD libopenvas_wincmd>=1.0.5)
+
+# for kb we need libhiredis
+pkg_check_modules (REDIS REQUIRED hiredis>=0.10.1)
+
+# for fast XML we need libxml2
+pkg_check_modules (LIBXML2 REQUIRED libxml-2.0>=2.0)
+pkg_check_modules (ZLIB REQUIRED zlib>=1.2.8)
+
+pkg_check_modules (GIO REQUIRED gio-2.0>=2.42)
+# for 'nasl' binary
+pkg_check_modules (LIBSSH REQUIRED libssh>=0.6.0)
+pkg_check_modules (KSBA REQUIRED ksba>=1.0.7)
+pkg_check_modules (GPGME REQUIRED gpgme>=1.0.7)
 
 message (STATUS "Looking for libgcrypt...")
 find_library (GCRYPT gcrypt)
@@ -79,11 +99,49 @@ endif (PCAP_CONFIG)
 
 find_package (Threads)
 
+set(CSRC "../nasl/")
+set (FILES ${CSRC}arc4.c ${CSRC}capture_packet.c ${CSRC}charcnv.c ${CSRC}exec.c ${CSRC}genrand.c ${CSRC}hmacmd5.c
+${CSRC}iconv.c ${CSRC}lint.c ${CSRC}md4.c ${CSRC}md5.c ${CSRC}nasl_builtin_find_service.c
+${CSRC}nasl_builtin_openvas_tcp_scanner.c ${CSRC}nasl_builtin_synscan.c
+${CSRC}nasl_cmd_exec.c ${CSRC}nasl_crypto2.c ${CSRC}nasl_snmp.c ${CSRC}nasl_ssh.c ${CSRC}nasl_cert.c
+${CSRC}nasl_crypto.c ${CSRC}nasl_debug.c ${CSRC}nasl_func.c ${CSRC}nasl_grammar.tab.c ${CSRC}nasl_host.c
+${CSRC}nasl_http.c ${CSRC}nasl_init.c ${CSRC}nasl_lex_ctxt.c ${CSRC}nasl_misc_funcs.c ${CSRC}nasl_scanner_glue.c
+${CSRC}nasl_packet_forgery.c ${CSRC}nasl_packet_forgery_v6.c ${CSRC}nasl_signature.c ${CSRC}nasl_smb.c
+${CSRC}nasl_socket.c ${CSRC}nasl_text_utils.c ${CSRC}nasl_tree.c ${CSRC}nasl_var.c ${CSRC}nasl_wmi.c
+${CSRC}nasl_isotime.c ${CSRC}ntlmssp.c ${CSRC}smb_crypt.c ${CSRC}smb_crypt2.c ${CSRC}smb_signing.c ${CSRC}time.c ${CSRC}nasl_glonal_ctxt.c ${CSRC}vfsreader.c)
+
+
+if (NOT OPENVAS_WMICLIENT_FOUND)
+  set (FILES ${CSRC}smb_interface_stub.c ${CSRC}wmi_interface_stub.c ${FILES})
+endif (NOT OPENVAS_WMICLIENT_FOUND)
+
+if (NOT OPENVAS_WINCMD_FOUND)
+  set (FILES ${CSRC}smb_interface_stub.c ${FILES})
+endif (NOT OPENVAS_WINCMD_FOUND)
+
+if (KSBA)
+  add_definitions (-DHAVE_LIBKSBA)
+endif (KSBA)
+
+if (OPENVAS_CONF)
+  add_definitions (-DOPENVAS_CONF="${OPENVAS_CONF}")
+endif (OPENVAS_CONF)
+
+set_source_files_properties (nasl_grammar.tab.c GENERATED)
+
+## Pass-throughs
+add_definitions (-DOPENVAS_STATE_DIR="${OPENVAS_STATE_DIR}")
+add_definitions (-DOPENVASLIB_VERSION="${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
+add_definitions (-DOPENVAS_SYSCONF_DIR="${OPENVAS_SYSCONF_DIR}")
+add_definitions (-DOPENVAS_NASL_VERSION="${PROJECT_VERSION_STRING}")
+add_definitions (-DOPENVAS_GPG_BASE_DIR="${OPENVAS_GPG_BASE_DIR}")
+add_definitions (-DUSE_VFS)
+
 add_executable (openvas attack.c hosts.c
                 main.c nasl_plugins.c openvas.c
                 pluginlaunch.c pluginload.c
                 pluginscheduler.c plugs_req.c
-                processes.c sighand.c utils.c)
+                processes.c sighand.c utils.c ${FILES})
 
 set_target_properties (openvas PROPERTIES LINKER_LANGUAGE C)
 
@@ -165,10 +223,27 @@ if (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
   set (EXECINFO_LDFLAGS "execinfo")
 endif (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
 
-target_link_libraries (openvas openvas_nasl_shared ${LIBOPENVAS_NASL_LDFLAGS}
+target_link_libraries (openvas openvas_misc 
+                      ${LIBOPENVAS_NASL_LDFLAGS}
                        ${LIBOPENVAS_MISC_LDFLAGS}
                        ${LIBGVM_BASE_LDFLAGS}
                        ${LIBGVM_BOREAS_LDFLAGS}
+                       ${LIBNET_LDFLAGS}
+                       ${GLIB_LDFLAGS}
+                        ${GCRYPT_LDFLAGS} ${GPGME_LDFLAGS} m
+                        ${LIBGVM_BASE_LDFLAGS}
+                        ${LIBGVM_UTIL_LDFLAGS}
+                        ${REDIS_LDFLAGS}
+                        ${ZLIB_LDFLAGS}
+                        ${GIO_LDFLAGS}
+                        ${OPENVAS_WMICLIENT_LDFLAGS} 
+                        ${OPENVAS_WINCMD_LDFLAGS}
+                        ${PCAP_LDFLAGS}
+                        ${KSBA_LDFLAGS}
+                        ${SNMP_LDFLAGS}
+                        ${LINKER_HARDENING_FLAGS}
+                        ${GNUTLS_LDFLAGS} 
+                        ${LIBSSH_LDFLAGS}
                        ${GLIB_LDFLAGS} ${GCRYPT_LDFLAGS}
                        ${EXECINFO_LDFLAGS} ${PCAP_LDFLAGS}
                        ${LINKER_HARDENING_FLAGS} ${CMAKE_THREAD_LIBS_INIT})

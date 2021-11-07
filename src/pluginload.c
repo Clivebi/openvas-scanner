@@ -26,6 +26,7 @@
 #include "pluginload.h"
 
 #include "../nasl/nasl.h"
+#include "../nasl/nasl_global_ctxt.h"
 #include "processes.h"
 #include "sighand.h"
 #include "utils.h"
@@ -267,8 +268,11 @@ plugins_reload_from_dir (void *folder)
                (char *) prefs_get ("config_file"));
       exit (1);
     }
-
+#ifdef USE_VFS
+  files = collect_nvts_from_vfs (files);
+#else
   files = collect_nvts (folder, "", files);
+#endif
   num_files = g_slist_length (files);
 
   /*
@@ -381,15 +385,21 @@ int
 plugins_init (void)
 {
   int ret = 0;
+#ifdef _DEBUG
+#else
   pid_t child_pid;
+#endif
   const char *plugins_folder = prefs_get ("plugins_folder");
 
   ret = plugins_cache_init ();
   if (ret)
     return ret;
-
+#ifdef _DEBUG
+  plugins_reload_from_dir ((void *) plugins_folder);
+#else
   child_pid = create_process (plugins_reload_from_dir, (void *) plugins_folder);
   waitpid (child_pid, &ret, 0);
+#endif
   nvticache_save ();
   return ret;
 }
